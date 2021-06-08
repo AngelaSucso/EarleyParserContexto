@@ -11,12 +11,10 @@ vector <string> lecturaParrafo(string dir){
     ifstream f;
     f.open(dir);
     while(!f.eof()){
-//        f>>v;
         getline(f, v); //toda la linea
         palabras.push_back(v);
         v="";
     }
-//    palabras.pop_back();
     f.close();
 
     return palabras;
@@ -92,16 +90,15 @@ EarleyParser::EarleyParser(vector <string> entrada){
     string lexema;
     for(int i=0; i<entrada[2].size(); i++){
         if(entrada[2][i]!=','){
-//            cout<<"if "<<entrada[2][i]<<endl;
             lexema.push_back(entrada[2][i]);
-//            cout<<"lexema: "<<lexema<<endl;
         }
         else{
             SNT.push_back(lexema);
             lexema.clear();
         }
     }
-    SNT.push_back(lexema);    lexema.clear();
+    SNT.push_back(lexema);
+    lexema.clear();
 
     for(int i=0; i<entrada[3].size(); i++){
         if(entrada[3][i]!=','){
