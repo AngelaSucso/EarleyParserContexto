@@ -1,0 +1,8 @@
+abcba
+A
+A,B,C
+a,b,c
+3
+A=Bc
+B=CAb
+C=a
