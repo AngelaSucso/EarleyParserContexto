@@ -155,7 +155,6 @@ int main()
     entrada = lecturaParrafo("entrada.txt");
 
     EarleyParser earley(entrada);
-    // cambio de dpuma
 
     return 0;
 }
