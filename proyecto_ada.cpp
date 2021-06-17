@@ -52,7 +52,7 @@ class EarleyState
 {
     Produccion produccion_actual; // ej. Verb -> Sust + Adj
     int pos_punto;
-    int pos_chart;  
+    int pos_chart;
     int estado_chart;
     int referencia_int; // profe dijo hacerlo puntero y entero
     EarleyState* referencia_ptr;
@@ -147,6 +147,7 @@ EarleyParser::EarleyParser(vector <string> entrada){
 }
 
 //int fun()
+//aqui cambios prueba
 // hacer el input - identificar la gramatica y la expresion a evaluar
 int main()
 {
