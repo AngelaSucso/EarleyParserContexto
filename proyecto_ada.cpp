@@ -52,7 +52,7 @@ class EarleyState
 {
     Produccion produccion_actual; // ej. Verb -> Sust + Adj
     int pos_punto;
-    int pos_chart;  
+    int pos_chart;
     int estado_chart;
     int referencia_int; // profe dijo hacerlo puntero y entero
     EarleyState* referencia_ptr;
@@ -153,6 +153,7 @@ int main()
     entrada = lecturaParrafo("entrada.txt");
 
     EarleyParser earley(entrada);
+    // cambio de dpuma
 
     return 0;
 }
