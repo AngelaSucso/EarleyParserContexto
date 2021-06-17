@@ -146,6 +146,7 @@ EarleyParser::EarleyParser(vector <string> entrada){
     }
 }
 
+//int fun()
 // hacer el input - identificar la gramatica y la expresion a evaluar
 int main()
 {
