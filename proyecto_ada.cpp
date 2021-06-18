@@ -78,6 +78,8 @@ class EarleyParser
     vector<string> ST;      // simbolos terminales
     string inicial;         // estado inicial
     string expresion;
+    int pos_ch;
+    int estado_ch;
 
     vector<EarleyState*> chart; // Chart es un arreglo de EarlyState
     // (...)
@@ -88,7 +90,31 @@ public:
     void predecir();
     void completar();
     void escanear();
+
 };
+
+EarleyParser::EarleyParser(vector <string> entrada)
+{
+    recibirEntrada(entrada);
+
+    pos_ch = 0;         // inicio pos_chart
+    estado_ch = 0;  // inicio estado_chart
+    for(int i = 0; i < P.size(); i++)
+    {
+        if (P[i].first == inicial)
+        {
+            EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
+            chart.push_back(oEarley);
+            pos_ch++;
+        }
+    }
+
+    predecir();
+    expresion.erase(0,1);
+
+    // test
+    //imprimirChart();
+}
 
 void EarleyParser::recibirEntrada(vector<string> entrada)
 {
@@ -137,22 +163,22 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
         lexema.clear();
 
     }
-
-    cout<<"DATOS RECIBIDOS"<<endl;
-    cout<<"Expresion      : "<<expresion<<endl;
-    cout<<"Estado inicial : "<<inicial<<endl;
-    cout<<"No Terminales  : ";
-    imprimirVector(SNT);
-    cout<<endl;
-    cout<<"Terminales     : ";
-    imprimirVector(ST);
-    cout<<endl<<endl;
-    cout<<"PRODUCCIONES"<<endl;
-    for(int i=0; i<P.size(); i++){
-        P[i].imprimir();
-        cout << endl;
-    }
-    cout << endl;
+//
+//    cout<<"DATOS RECIBIDOS"<<endl;
+//    cout<<"Expresion      : "<<expresion<<endl;
+//    cout<<"Estado inicial : "<<inicial<<endl;
+//    cout<<"No Terminales  : ";
+//    imprimirVector(SNT);
+//    cout<<endl;
+//    cout<<"Terminales     : ";
+//    imprimirVector(ST);
+//    cout<<endl<<endl;
+//    cout<<"PRODUCCIONES"<<endl;
+//    for(int i=0; i<P.size(); i++){
+//        P[i].imprimir();
+//        cout << endl;
+//    }
+//    cout << endl;
 }
 
 void EarleyParser::imprimirChart()
@@ -167,17 +193,57 @@ void EarleyParser::imprimirChart()
     }
 }
 
+bool busquedaChar(string letra, vector <string> vec){
+    for(int i=0; i<vec.size(); i++){
+        if(vec[i] == letra){
+            return true;
+        }
+    }
+    return false;
+}
+
+string char_to_string(char A){
+    string tmp;
+    tmp.push_back(A);
+    return tmp;
+}
+
 void EarleyParser::predecir()
+{
+    vector <string> vec;
+    int pos = chart[chart.size()-1]->pos_punto;
+    string tmp;
+    tmp.push_back(chart[chart.size()-1]->produccion_actual.second[pos]);
+
+    vec.push_back(tmp);
+    int pos_vec=0;
+
+    while(true){ // ITERA POR EL VEC
+        for(int i=0; i<P.size(); i++){ // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
+            if(P[i].first == vec[pos_vec]){  // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
+                EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
+                chart.push_back(oEarley);
+                pos_ch++;
+                cout<<P[i].second<<endl;
+                if(!busquedaChar(char_to_string(P[i].second[0]), vec)){
+                    vec.push_back(char_to_string(P[i].second[0]));
+                }
+            }
+        }
+        pos_vec++;
+        if(pos_vec == vec.size()) break;
+    }
+
+    estado_ch++;
+    imprimirChart();
+}
+
+void EarleyParser::escanear()
 {
 
 }
 
 void EarleyParser::completar()
-{
-
-}
-
-void EarleyParser::escanear()
 {
 
 }
@@ -197,26 +263,6 @@ constructor:
 }
 */
 
-EarleyParser::EarleyParser(vector <string> entrada)
-{
-    recibirEntrada(entrada);
-
-    int pos_ch = 0;     // inicio pos_chart
-    int estado_ch = 0;  // inicio estado_chart
-    for(int i = 0; i < P.size(); i++)
-    {
-        if (P[i].first == inicial)
-        {
-            EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
-            chart.push_back(oEarley);
-            pos_ch++;
-        }
-    }
-
-    // test
-    imprimirChart();
-
-}
 
 
 // hacer el input - identificar la gramatica y la expresion a evaluar
@@ -227,5 +273,8 @@ int main()
 
     EarleyParser earley(entrada);
 
+
     return 0;
+
+
 }
