@@ -110,10 +110,10 @@ EarleyParser::EarleyParser(vector <string> entrada)
     }
 
     predecir();
-    expresion.erase(0,1);
+    escanear();
 
     // test
-    //imprimirChart();
+    imprimirChart();
 }
 
 void EarleyParser::recibirEntrada(vector<string> entrada)
@@ -240,7 +240,23 @@ void EarleyParser::predecir()
 
 void EarleyParser::escanear()
 {
+    char letraTest = expresion[0];
+    expresion.erase(0,1);
 
+    for(int i=0; i<chart.size(); i++)
+    {
+        if(chart[i]->estado_chart == estado_ch-1)
+        {
+            int pos = chart[i]->pos_punto;
+            char tmp = chart[i]->produccion_actual.second[pos];
+            if(letraTest == tmp)
+            {
+                EarleyState* oEarley = new EarleyState(P[i], pos + 1, pos_ch, estado_ch, 0);
+                chart.push_back(oEarley);
+                pos_ch++;
+            }
+        }
+    }
 }
 
 void EarleyParser::completar()
