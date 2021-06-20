@@ -59,6 +59,8 @@ class EarleyState
 public:
     EarleyState(Produccion, int, int, int, int);
     friend class EarleyParser;
+    friend bool busquedaChar(string, vector <EarleyState*>);
+    friend void imprimirVector(vector <EarleyState*>);
 };
 
 EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
@@ -70,6 +72,14 @@ EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
     estado_chart = ec;  // 0(inicio,predecir), 1(escanear,completar), 2(escanear,predecir), 3(... )
     referencia_int = r; // de donde viene la produccion actual
 }
+
+//IMPRIME VECTOR
+void imprimirVector(vector <EarleyState*> vectorsote){
+    for(int i=0; i<vectorsote.size(); i++){
+        cout<<vectorsote[i]->produccion_actual.first<<" ";
+    }
+}
+
 
 class EarleyParser
 {
@@ -111,6 +121,15 @@ EarleyParser::EarleyParser(vector <string> entrada)
 
     predecir();
     escanear();
+    completar();
+//    escanear();
+//    predecir();
+//    escanear();
+//    completar();
+//    escanear();
+//    predecir();
+//    escanear();
+//    completar();
 
     // test
     imprimirChart();
@@ -202,6 +221,15 @@ bool busquedaChar(string letra, vector <string> vec){
     return false;
 }
 
+bool busquedaChar(string letra, vector <EarleyState*> vec){
+    for(int i=0; i<vec.size(); i++){
+        if(vec[i]->produccion_actual.first == letra){
+            return true;
+        }
+    }
+    return false;
+}
+
 string char_to_string(char A){
     string tmp;
     tmp.push_back(A);
@@ -221,7 +249,7 @@ void EarleyParser::predecir()
     while(true){ // ITERA POR EL VEC
         for(int i=0; i<P.size(); i++){ // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
             if(P[i].first == vec[pos_vec]){  // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
-                EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
+                EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch); //1° estado_ch = estado actual; 2° = ref
                 chart.push_back(oEarley);
                 pos_ch++;
                 cout<<P[i].second<<endl;
@@ -235,13 +263,11 @@ void EarleyParser::predecir()
     }
 
     estado_ch++;
-    imprimirChart();
 }
 
 void EarleyParser::escanear()
 {
     char letraTest = expresion[0];
-    expresion.erase(0,1);
 
     for(int i=0; i<chart.size(); i++)
     {
@@ -251,18 +277,58 @@ void EarleyParser::escanear()
             char tmp = chart[i]->produccion_actual.second[pos];
             if(letraTest == tmp)
             {
-                EarleyState* oEarley = new EarleyState(P[i], pos + 1, pos_ch, estado_ch, 0);
+                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos + 1, pos_ch, estado_ch, chart[i]->referencia_int);
                 chart.push_back(oEarley);
                 pos_ch++;
             }
         }
     }
+    expresion.erase(0,1);
 }
 
-void EarleyParser::completar()
-{
+void EarleyParser::completar(){
+    vector <EarleyState*> vec;
+    //    string tmp = chart[chart.size()-1]->produccion_actual.first;
+    vec.push_back(chart[chart.size()-1]);
 
+    int pos_vec = 0;
+    int var_ref;
+    string first_busqueda;
+            cout<<"estado: "<<estado_ch<<endl;
+    while(true){
+        first_busqueda = vec[pos_vec]->produccion_actual.first;
+        var_ref = vec[pos_vec]->referencia_int;
+        for(int i = 0; i < chart.size(); i++)
+        {
+            int pos_tmp = chart[i]->pos_punto;
+            //int ref_actual = chart[chart.size()-1]->referencia_int;
+            string letra_actual = char_to_string(chart[i]->produccion_actual.second[pos_tmp]);
+            cout<<var_ref<<"-------------"<<first_busqueda<<endl;
+            if(chart[i]->estado_chart == var_ref && letra_actual == first_busqueda)
+            {
+                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1, pos_ch, estado_ch, var_ref);
+                chart.push_back(oEarley);
+                pos_ch++;
+
+                cout<<"letra actual: "<<letra_actual<<endl;
+                imprimirVector(vec);
+                if(!busquedaChar(letra_actual, vec))
+                {
+                    vec.push_back(chart[i]);
+                    cout<<"vectores es: "<<endl;
+                    imprimirVector(vec);
+                }
+            }
+        }
+        pos_vec++;
+
+        if(pos_vec == vec.size())
+            break;
+    }
+    estado_ch++;
 }
+
+
 
 /*
 constructor:

@@ -4,11 +4,11 @@ P,S,M,T
 1,2,3,4,+,*
 9
 P=S
-S=S + M 
+S=S+M
 S=M
-M=M * T 
+M=M*T
 M=T
-T=1 
-T=2 
-T=3 
+T=1
+T=2
+T=3
 T=4
