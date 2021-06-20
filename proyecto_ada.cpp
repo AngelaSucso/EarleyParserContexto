@@ -369,7 +369,7 @@ void EarleyParser::completar()
     {
         first_busqueda = vec[pos_vec]->produccion_actual.first;
         var_ref        = vec[pos_vec]->referencia_int;
-        for(int i = 0; i < chart.size(); i++)
+        for(int i = 0; i < chart.size(); i++) //itera por el chart
         {
             int pos_tmp = chart[i]->pos_punto;
 
@@ -396,7 +396,6 @@ void EarleyParser::completar()
     estado_ch++;
 }
 
-// hacer el input - identificar la gramatica y la expresion a evaluar
 int main()
 {
     vector <string> entrada;
