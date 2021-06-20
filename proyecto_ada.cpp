@@ -5,12 +5,14 @@
 using namespace std;
 
 //ABRE Y SEPARA EL PARRAFO EN PALABRAS
-vector <string> lecturaParrafo(string dir){
+vector <string> lecturaParrafo(string dir)
+{
     string v;
     vector <string> palabras;
     ifstream f;
     f.open(dir);
-    while(!f.eof()){
+    while(!f.eof())
+    {
         getline(f, v); //toda la linea
         palabras.push_back(v);
         v="";
@@ -21,8 +23,10 @@ vector <string> lecturaParrafo(string dir){
 }
 
 //IMPRIME VECTOR
-void imprimirVector(vector <string> vectorsote){
-    for(int i=0; i<vectorsote.size(); i++){
+void imprimirVector(vector <string> vectorsote)
+{
+    for(int i=0; i<vectorsote.size(); i++)
+    {
         cout<<vectorsote[i]<<" ";
     }
 }
@@ -32,11 +36,13 @@ struct Produccion
     // Ej. aAb -> aBb + aAcb
     string first; // parte izquierda
     string second; // parte derecha
-    Produccion(string f, string s){
+    Produccion(string f, string s)
+    {
         first = f;
         second = s;
     };
-    Produccion(){
+    Produccion()
+    {
         first = "";
         second = "";
     };
@@ -44,7 +50,8 @@ struct Produccion
     void imprimir();
 };
 
-void Produccion::imprimir(){
+void Produccion::imprimir()
+{
     cout<<"[f]"<<first<<" "<<"[s]"<<second;
 }
 
@@ -74,8 +81,10 @@ EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
 }
 
 //IMPRIME VECTOR
-void imprimirVector(vector <EarleyState*> vectorsote){
-    for(int i=0; i<vectorsote.size(); i++){
+void imprimirVector(vector <EarleyState*> vectorsote)
+{
+    for(int i=0; i<vectorsote.size(); i++)
+    {
         cout<<vectorsote[i]->produccion_actual.first<<" ";
     }
 }
@@ -100,6 +109,7 @@ public:
     void predecir();
     void completar();
     void escanear();
+    bool evaluacion_final();
 
 };
 
@@ -119,20 +129,58 @@ EarleyParser::EarleyParser(vector <string> entrada)
         }
     }
 
-    predecir();
-    escanear();
-    completar();
-    escanear();
-    predecir();
-    escanear();
-    completar();
-    escanear();
-    predecir();
-    escanear();
-    completar();
+    while(true)
+    {
+        predecir();
+        if(expresion.size() == 0)
+        {
+            imprimirChart();
+            if(evaluacion_final())
+            {
+                cout<<"\nSi pertenece a la gramatica."<<endl;
+            }
+            else
+            {
+                cout<<"\nNo pertenece a la gramatica."<<endl;
+            }
+            break;
+        }
+        escanear();
+        completar();
+        if(expresion.size() == 0)
+        {
+            imprimirChart();
+            if(evaluacion_final())
+            {
+                cout<<"\nSi pertenece a la gramatica."<<endl;
+            }
+            else
+            {
+                cout<<"\nNo pertenece a la gramatica."<<endl;
+            }
+            break;
+        }
+        escanear();
+    }
 
-    // test
-    imprimirChart();
+}
+
+bool EarleyParser::evaluacion_final()
+{
+    for(int i=0; i<chart.size(); i++)
+    {
+        if(chart[i]->estado_chart == estado_ch-1)  //buscar en el ultimo estado
+        {
+            if(chart[i]->pos_punto == chart[i]->produccion_actual.second.size())  //verifica que pos-punto este al final de su produccion
+            {
+                if(chart[i]->referencia_int == 0)  //verifica que su staterefence sea 0
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void EarleyParser::recibirEntrada(vector<string> entrada)
@@ -140,11 +188,14 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
     expresion = entrada[0];
     inicial = entrada[1];
     string lexema;
-    for(int i=0; i<entrada[2].size(); i++){
-        if(entrada[2][i]!=','){
+    for(int i=0; i<entrada[2].size(); i++)
+    {
+        if(entrada[2][i]!=',')
+        {
             lexema.push_back(entrada[2][i]);
         }
-        else{
+        else
+        {
             SNT.push_back(lexema);
             lexema.clear();
         }
@@ -152,11 +203,14 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
     SNT.push_back(lexema);
     lexema.clear();
 
-    for(int i=0; i<entrada[3].size(); i++){
-        if(entrada[3][i]!=','){
+    for(int i=0; i<entrada[3].size(); i++)
+    {
+        if(entrada[3][i]!=',')
+        {
             lexema.push_back(entrada[3][i]);
         }
-        else{
+        else
+        {
             ST.push_back(lexema);
             lexema.clear();
         }
@@ -166,13 +220,17 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
 
     int cant = atoi(entrada[4].c_str());
     int fin = 5 + cant;
-    for(int i = 5; i < fin; i++){
+    for(int i = 5; i < fin; i++)
+    {
         Produccion* tmp = new Produccion;
-        for(int j=0; j<entrada[i].size(); j++){
-            if(entrada[i][j]!= '='){
+        for(int j=0; j<entrada[i].size(); j++)
+        {
+            if(entrada[i][j]!= '=')
+            {
                 lexema.push_back(entrada[i][j]);
             }
-            else{
+            else
+            {
                 tmp->first = lexema;
                 lexema.clear();
             }
@@ -182,22 +240,23 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
         lexema.clear();
 
     }
-//
-//    cout<<"DATOS RECIBIDOS"<<endl;
-//    cout<<"Expresion      : "<<expresion<<endl;
-//    cout<<"Estado inicial : "<<inicial<<endl;
-//    cout<<"No Terminales  : ";
-//    imprimirVector(SNT);
-//    cout<<endl;
-//    cout<<"Terminales     : ";
-//    imprimirVector(ST);
-//    cout<<endl<<endl;
-//    cout<<"PRODUCCIONES"<<endl;
-//    for(int i=0; i<P.size(); i++){
-//        P[i].imprimir();
-//        cout << endl;
-//    }
-//    cout << endl;
+
+    cout<<"DATOS RECIBIDOS"<<endl;
+    cout<<"Expresion      : "<<expresion<<endl;
+    cout<<"Estado inicial : "<<inicial<<endl;
+    cout<<"No Terminales  : ";
+    imprimirVector(SNT);
+    cout<<endl;
+    cout<<"Terminales     : ";
+    imprimirVector(ST);
+    cout<<endl<<endl;
+    cout<<"PRODUCCIONES"<<endl;
+    for(int i=0; i<P.size(); i++)
+    {
+        P[i].imprimir();
+        cout << endl;
+    }
+    cout << endl;
 }
 
 void EarleyParser::imprimirChart()
@@ -212,25 +271,32 @@ void EarleyParser::imprimirChart()
     }
 }
 
-bool busquedaChar(string letra, vector <string> vec){
-    for(int i=0; i<vec.size(); i++){
-        if(vec[i] == letra){
+bool busquedaChar(string letra, vector <string> vec)
+{
+    for(int i=0; i<vec.size(); i++)
+    {
+        if(vec[i] == letra)
+        {
             return true;
         }
     }
     return false;
 }
 
-bool busquedaChar(string letra, vector <EarleyState*> vec){
-    for(int i=0; i<vec.size(); i++){
-        if(vec[i]->produccion_actual.first == letra){
+bool busquedaChar(string letra, vector <EarleyState*> vec)
+{
+    for(int i=0; i<vec.size(); i++)
+    {
+        if(vec[i]->produccion_actual.first == letra)
+        {
             return true;
         }
     }
     return false;
 }
 
-string char_to_string(char A){
+string char_to_string(char A)
+{
     string tmp;
     tmp.push_back(A);
     return tmp;
@@ -246,20 +312,24 @@ void EarleyParser::predecir()
     vec.push_back(tmp);
     int pos_vec=0;
 
-    while(true){ // ITERA POR EL VEC
-        for(int i=0; i<P.size(); i++){ // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
-            if(P[i].first == vec[pos_vec]){  // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
+    while(true)  // ITERA POR EL VEC
+    {
+        for(int i=0; i<P.size(); i++)  // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
+        {
+            if(P[i].first == vec[pos_vec])   // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
+            {
                 EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch); //1° estado_ch = estado actual; 2° = ref
                 chart.push_back(oEarley);
                 pos_ch++;
-                cout<<P[i].second<<endl;
-                if(!busquedaChar(char_to_string(P[i].second[0]), vec)){
+                if(!busquedaChar(char_to_string(P[i].second[0]), vec))
+                {
                     vec.push_back(char_to_string(P[i].second[0]));
                 }
             }
         }
         pos_vec++;
-        if(pos_vec == vec.size()) break;
+        if(pos_vec == vec.size())
+            break;
     }
 
     estado_ch++;
@@ -286,7 +356,8 @@ void EarleyParser::escanear()
     expresion.erase(0,1);
 }
 
-void EarleyParser::completar(){
+void EarleyParser::completar()
+{
     vector <EarleyState*> vec;
     vec.push_back(chart[chart.size()-1]);
 
@@ -294,18 +365,20 @@ void EarleyParser::completar(){
     int var_ref;
     string first_busqueda; // extrae letra del vec
 
-    while(true){ // itera por el vector
+    while(true)  // itera por el vector
+    {
         first_busqueda = vec[pos_vec]->produccion_actual.first;
         var_ref        = vec[pos_vec]->referencia_int;
         for(int i = 0; i < chart.size(); i++)
         {
             int pos_tmp = chart[i]->pos_punto;
+
             // letra de la produccion en la posicion pos_punto
             string letra_actual = char_to_string(chart[i]->produccion_actual.second[pos_tmp]);
+
             if(chart[i]->estado_chart == var_ref && letra_actual == first_busqueda)
             {
-                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1
-                                                       , pos_ch, estado_ch, chart[i]->referencia_int);
+                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int);
                 chart.push_back(oEarley);
                 pos_ch++;
 
@@ -323,25 +396,6 @@ void EarleyParser::completar(){
     estado_ch++;
 }
 
-
-
-/*
-constructor:
-{
-    recibirEntrada();
-    insertar primer estado en chart
-    while()
-    {
-        predecir();
-        escanear();
-        completar();
-        escanear();
-    }
-}
-*/
-
-
-
 // hacer el input - identificar la gramatica y la expresion a evaluar
 int main()
 {
@@ -350,8 +404,5 @@ int main()
 
     EarleyParser earley(entrada);
 
-
     return 0;
-
-
 }
