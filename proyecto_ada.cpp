@@ -122,14 +122,14 @@ EarleyParser::EarleyParser(vector <string> entrada)
     predecir();
     escanear();
     completar();
-//    escanear();
-//    predecir();
-//    escanear();
-//    completar();
-//    escanear();
-//    predecir();
-//    escanear();
-//    completar();
+    escanear();
+    predecir();
+    escanear();
+    completar();
+    escanear();
+    predecir();
+    escanear();
+    completar();
 
     // test
     imprimirChart();
@@ -288,35 +288,30 @@ void EarleyParser::escanear()
 
 void EarleyParser::completar(){
     vector <EarleyState*> vec;
-    //    string tmp = chart[chart.size()-1]->produccion_actual.first;
     vec.push_back(chart[chart.size()-1]);
 
     int pos_vec = 0;
     int var_ref;
-    string first_busqueda;
-            cout<<"estado: "<<estado_ch<<endl;
-    while(true){
+    string first_busqueda; // extrae letra del vec
+
+    while(true){ // itera por el vector
         first_busqueda = vec[pos_vec]->produccion_actual.first;
-        var_ref = vec[pos_vec]->referencia_int;
+        var_ref        = vec[pos_vec]->referencia_int;
         for(int i = 0; i < chart.size(); i++)
         {
             int pos_tmp = chart[i]->pos_punto;
-            //int ref_actual = chart[chart.size()-1]->referencia_int;
+            // letra de la produccion en la posicion pos_punto
             string letra_actual = char_to_string(chart[i]->produccion_actual.second[pos_tmp]);
-            cout<<var_ref<<"-------------"<<first_busqueda<<endl;
             if(chart[i]->estado_chart == var_ref && letra_actual == first_busqueda)
             {
-                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1, pos_ch, estado_ch, var_ref);
+                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1
+                                                       , pos_ch, estado_ch, chart[i]->referencia_int);
                 chart.push_back(oEarley);
                 pos_ch++;
 
-                cout<<"letra actual: "<<letra_actual<<endl;
-                imprimirVector(vec);
-                if(!busquedaChar(letra_actual, vec))
+                if(!busquedaChar(chart[i]->produccion_actual.first, vec))
                 {
                     vec.push_back(chart[i]);
-                    cout<<"vectores es: "<<endl;
-                    imprimirVector(vec);
                 }
             }
         }
