@@ -187,36 +187,36 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
 {
     expresion = entrada[0];
     inicial = entrada[1];
-    string lexema;
+    string palabra;
     for(int i=0; i<entrada[2].size(); i++)
     {
         if(entrada[2][i]!=',')
         {
-            lexema.push_back(entrada[2][i]);
+            palabra.push_back(entrada[2][i]);
         }
         else
         {
-            SNT.push_back(lexema);
-            lexema.clear();
+            SNT.push_back(palabra);
+            palabra.clear();
         }
     }
-    SNT.push_back(lexema);
-    lexema.clear();
+    SNT.push_back(palabra);
+    palabra.clear();
 
     for(int i=0; i<entrada[3].size(); i++)
     {
         if(entrada[3][i]!=',')
         {
-            lexema.push_back(entrada[3][i]);
+            palabra.push_back(entrada[3][i]);
         }
         else
         {
-            ST.push_back(lexema);
-            lexema.clear();
+            ST.push_back(palabra);
+            palabra.clear();
         }
     }
-    ST.push_back(lexema);
-    lexema.clear();
+    ST.push_back(palabra);
+    palabra.clear();
 
     int cant = atoi(entrada[4].c_str());
     int fin = 5 + cant;
@@ -227,17 +227,17 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
         {
             if(entrada[i][j]!= '=')
             {
-                lexema.push_back(entrada[i][j]);
+                palabra.push_back(entrada[i][j]);
             }
             else
             {
-                tmp->first = lexema;
-                lexema.clear();
+                tmp->first = palabra;
+                palabra.clear();
             }
         }
-        tmp->second = lexema;
+        tmp->second = palabra;
         P.push_back(*tmp);
-        lexema.clear();
+        palabra.clear();
 
     }
 
