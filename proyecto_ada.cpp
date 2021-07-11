@@ -31,6 +31,49 @@ void imprimirVector(vector <string> vectorsote)
     }
 }
 
+// TOKEN ================================================
+
+class Token{
+private:
+    string etiqueta;
+    string valor;
+public:
+    Token();
+    Token(string,string);
+};
+
+Token::Token(){
+    etiqueta = "";
+    valor = "";
+}
+
+Token::Token(string _etiqueta, string _valor){
+    etiqueta = _etiqueta;
+    valor = _valor;
+}
+
+// NODO =================================================
+
+class Nodo{
+private:
+    string etiqueta;
+    vector<*Token> tokens;
+public:
+    Nodo();
+    void insertarToken();
+};
+
+Nodo::Nodo(){
+    etiqueta = "";
+}
+
+Nodo::insertarToken(string etiqueta, string valor){
+    Token *token = new Token(etiqueta,valor);
+    tokens.push_back(token);
+}
+
+//=================================================
+
 struct Produccion
 {
     // Ej. aAb -> aBb + aAcb
