@@ -34,10 +34,9 @@ void imprimirVector(vector <string> vectorsote)
 // TOKEN ================================================
 
 class Token{
-private:
+public:
     string etiqueta;
     string valor;
-public:
     Token();
     Token(string,string);
 };
@@ -55,56 +54,92 @@ Token::Token(string _etiqueta, string _valor){
 // NODO =================================================
 
 class Nodo{
-private:
-    string etiqueta;
-    vector<*Token> tokens;
 public:
-    Nodo();
-    void insertarToken();
+    string etiqueta;
+    vector<Token*> tokens;
+
+    Nodo(string);
+    void insertarToken(string,string);
+    void imprimirTokens();
+    void imprimirNodo();
+
+    Nodo& operator = (const Nodo &original);
 };
 
-Nodo::Nodo(){
-    etiqueta = "";
+Nodo::Nodo(string _etiqueta){
+    etiqueta = _etiqueta;
 }
 
-Nodo::insertarToken(string etiqueta, string valor){
+void Nodo::insertarToken(string etiqueta, string valor)
+{
     Token *token = new Token(etiqueta,valor);
     tokens.push_back(token);
 }
 
-//=================================================
+void Nodo::imprimirTokens(){
+    for(int i=0; i<tokens.size(); i++){
+        cout<<tokens[i]->etiqueta<<"="<<tokens[i]->valor<<" ";
+    }
+}
 
-struct Produccion
+void Nodo::imprimirNodo(){
+    cout<<etiqueta;
+    cout<<"[";
+    imprimirTokens();
+    cout<<"]";
+}
+
+Nodo& Nodo::operator = (const Nodo &original)
+{
+    etiqueta = original.etiqueta;
+    for (int i=0; i<original.tokens.size(); i++)
+        tokens.push_back(original.tokens[i]);
+    return *this;
+}
+
+//==========================================================
+
+class Produccion
 {
     // Ej. aAb -> aBb + aAcb
-    string first; // parte izquierda
-    string second; // parte derecha
-    Produccion(string f, string s)
+    Nodo *first;            // parte izquierda
+    vector<Nodo*> second;   // parte derecha
+public:
+    Produccion(Nodo* f, vector<Nodo*> s)
     {
         first = f;
-        second = s;
+        for(int i=0; i<s.size(); i++){
+            second.push_back(s[i]);
+        }
     };
-    Produccion()
-    {
-        first = "";
-        second = "";
-    };
-
-    void imprimir();
+    Produccion(){};
+    Produccion& operator = (Produccion &original);
+    void imprimirProduccion();
 };
 
-void Produccion::imprimir()
-{
-    cout<<"[f]"<<first<<" "<<"[s]"<<second;
+void Produccion::imprimirProduccion(){
+    first->imprimirNodo();
+    cout<<"->";
+    for(int i=0; i<second.size(); i++){
+        second[i]->imprimirNodo();
+    }
+}
+
+Produccion& Produccion::operator = (Produccion &original){
+    first = original.first;
+    for(int i=0; i<original.second.size(); i++){
+        second.push_back(original.second[i]);
+    }
+    return *this;
 }
 
 class EarleyState
 {
-    Produccion produccion_actual; // ej. Verb -> Sust + Adj
+    Produccion produccion_actual;   // ej. Verb -> Sust + Adj
     int pos_punto;
     int pos_chart;
     int estado_chart;
-    int referencia_int; // profe dijo hacerlo puntero y entero
+    int referencia_int;             // profe dijo hacerlo puntero y entero
     EarleyState* referencia_ptr;
 public:
     EarleyState(Produccion, int, int, int, int);
@@ -115,13 +150,14 @@ public:
 
 EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
 {
-    produccion_actual.first = prod.first;
-    produccion_actual.second = prod.second;
+    produccion_actual = prod;
     pos_punto = pp;     // pos del punto en la expresion
     pos_chart = pc;     // linea del chart actual
     estado_chart = ec;  // 0(inicio,predecir), 1(escanear,completar), 2(escanear,predecir), 3(... )
     referencia_int = r; // de donde viene la produccion actual
 }
+
+/*
 
 //IMPRIME VECTOR
 void imprimirVector(vector <EarleyState*> vectorsote)
@@ -136,10 +172,10 @@ void imprimirVector(vector <EarleyState*> vectorsote)
 class EarleyParser
 {
     vector<Produccion> P;   // vector de producciones
-    vector<string> SNT;     // simbolos no terminales
-    vector<string> ST;      // simbolos terminales
-    string inicial;         // estado inicial
-    string expresion;
+    vector<*Nodo> SNT;     // simbolos no terminales
+    vector<*Nodo> ST;      // simbolos terminales
+    Nodo inicial;         // estado inicial
+    vector<*Nodo> expresion;
     int pos_ch;
     int estado_ch;
 
@@ -438,13 +474,34 @@ void EarleyParser::completar()
     }
     estado_ch++;
 }
+*/
 
 int main()
 {
-    vector <string> entrada;
-    entrada = lecturaParrafo("entrada.txt");
+//    vector <string> entrada;
+//    entrada = lecturaParrafo("entrada.txt");
+//
+//    EarleyParser earley(entrada);
 
-    EarleyParser earley(entrada);
+    Nodo nodito("N");
+    Token prueba("num","singular");
+    Token prueba2("num","plural");
+    Token prueba3("gen","femenino");
+    nodito.insertarToken("gen","masculino");
+    nodito.insertarToken("num","plural");
+
+    cout<<prueba.etiqueta<<endl;
+    cout<<prueba2.valor<<endl;
+    cout<<prueba3.etiqueta<<endl<<endl;
+
+    cout<<nodito.etiqueta<<" "<<nodito.tokens[0]->valor<<endl;
+
+    vector<Nodo*> nodos;
+    nodos.push_back(&nodito);
+
+    Produccion producto(&nodito,nodos);
+
+    producto.imprimirProduccion();
 
     return 0;
 }
