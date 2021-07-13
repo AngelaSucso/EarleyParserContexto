@@ -168,6 +168,7 @@ public:
     int referencia_int;             // profe dijo hacerlo puntero y entero
     EarleyState* referencia_ptr;
     EarleyState(Produccion, int, int, int, int);
+    void imprimirEarleyState();
     friend class EarleyParser;
     friend bool busquedaChar(string, vector <EarleyState*>);
     friend void imprimirVector(vector <EarleyState*>);
@@ -189,6 +190,12 @@ void imprimirVector(vector <EarleyState*> vectorsote)
     {
         cout<<vectorsote[i]->produccion_actual.first<<" ";
     }
+}
+
+void EarleyState::imprimirEarleyState(){
+    cout << pos_chart << ", ";
+    produccion_actual.imprimirProduccion();
+    cout << ", " << pos_punto << ", " << estado_chart << ", " << referencia_int << endl;
 }
 
 class EarleyParser
@@ -230,6 +237,10 @@ EarleyParser::EarleyParser(vector <string> entrada)
         }
     }
     predecir();
+    imprimirChart();
+    escanear();
+    imprimirChart();
+    completar();
     imprimirChart();
 /*
     while(true)
@@ -509,18 +520,18 @@ void EarleyParser::predecir()
 
     estado_ch++;
 }
-/*
+
 void EarleyParser::escanear()
 {
-    char letraTest = expresion[0];
+    string palabraTest = expresion[0];
 
     for(int i=0; i<chart.size(); i++)
     {
         if(chart[i]->estado_chart == estado_ch-1)
         {
             int pos = chart[i]->pos_punto;
-            char tmp = chart[i]->produccion_actual.second[pos];
-            if(letraTest == tmp)
+            string tmp = chart[i]->produccion_actual.second[pos]->etiqueta;
+            if(palabraTest == tmp)
             {
                 EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos + 1, pos_ch, estado_ch, chart[i]->referencia_int);
                 chart.push_back(oEarley);
@@ -528,7 +539,7 @@ void EarleyParser::escanear()
             }
         }
     }
-    expresion.erase(0,1);
+    expresion.erase(expresion.begin());
 }
 
 void EarleyParser::completar()
@@ -538,26 +549,27 @@ void EarleyParser::completar()
 
     int pos_vec = 0;
     int var_ref;
-    string first_busqueda; // extrae letra del vec
+    string first_busqueda; // extrae palabra del vec
 
     while(true)  // itera por el vector
     {
-        first_busqueda = vec[pos_vec]->produccion_actual.first;
+        first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
         var_ref        = vec[pos_vec]->referencia_int;
         for(int i = 0; i < chart.size(); i++) //itera por el chart
         {
             int pos_tmp = chart[i]->pos_punto;
 
             // letra de la produccion en la posicion pos_punto
-            string letra_actual = char_to_string(chart[i]->produccion_actual.second[pos_tmp]);
+            string palabra_actual = chart[i]->produccion_actual.second[pos_tmp]->etiqueta;
 
-            if(chart[i]->estado_chart == var_ref && letra_actual == first_busqueda)
+            if(chart[i]->estado_chart == var_ref && palabra_actual == first_busqueda)
             {
                 EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int);
                 chart.push_back(oEarley);
+                oEarley->imprimirEarleyState();
                 pos_ch++;
 
-                if(!busquedaChar(chart[i]->produccion_actual.first, vec))
+                if( !busquedaString(chart[i]->produccion_actual.first->etiqueta, vec) )
                 {
                     vec.push_back(chart[i]);
                 }
@@ -570,7 +582,7 @@ void EarleyParser::completar()
     }
     estado_ch++;
 }
-*/
+
 
 int main()
 {
