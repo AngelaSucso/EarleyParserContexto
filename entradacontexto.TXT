@@ -2,13 +2,7 @@ these dogs run
 S
 S NP VP Det N V
 this these dog dogs run runs
-9
-S-NP[NUM=?n] VP[NUM=?n]
-NP[NUM=?n]-Det[NUM=?n] N[NUM=?n]
-VP[NUM=?n]-V[NUM=?n]
-Det[NUM=sg]-'this'
-Det[NUM=pl]-'these'
-N[NUM=sg]-'dog'
-N[NUM=pl]-'dogs'
-V[NUM=sg]-'runs'
-V[NUM=pl]-'run'
+3
+S[NUM=pl]:NP[NUM=?] VP[NUM=?]
+NP[NUM=?]:Det[NUM=sg] N[NUM=?]
+VP[NUM=sg]:V[NUM=?]

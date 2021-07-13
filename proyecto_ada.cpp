@@ -4,6 +4,22 @@
 #include <stdlib.h>
 using namespace std;
 
+vector<string> split(string cadena, char simbolo){
+    vector<string> vec;
+    string tmp;
+    for(int i=0; i<cadena.size();i++){
+        if(cadena[i]!=simbolo){
+            tmp.push_back(cadena[i]);
+        }else{
+            vec.push_back(tmp);
+            tmp.clear();
+        }
+    }
+    vec.push_back(tmp);
+
+    return vec;
+}
+
 //ABRE Y SEPARA EL PARRAFO EN PALABRAS
 vector <string> lecturaParrafo(string dir)
 {
@@ -39,6 +55,7 @@ public:
     string valor;
     Token();
     Token(string,string);
+    void imprimirToken();
 };
 
 Token::Token(){
@@ -51,13 +68,17 @@ Token::Token(string _etiqueta, string _valor){
     valor = _valor;
 }
 
+void Token::imprimirToken(){
+    cout<<etiqueta<<"="<<valor;
+}
+
 // NODO =================================================
 
 class Nodo{
 public:
     string etiqueta;
     vector<Token*> tokens;
-
+    Nodo();
     Nodo(string);
     void insertarToken(string,string);
     void imprimirTokens();
@@ -65,6 +86,10 @@ public:
 
     Nodo& operator = (const Nodo &original);
 };
+
+Nodo::Nodo(){
+    etiqueta = "";
+}
 
 Nodo::Nodo(string _etiqueta){
     etiqueta = _etiqueta;
@@ -78,7 +103,7 @@ void Nodo::insertarToken(string etiqueta, string valor)
 
 void Nodo::imprimirTokens(){
     for(int i=0; i<tokens.size(); i++){
-        cout<<tokens[i]->etiqueta<<"="<<tokens[i]->valor<<" ";
+        tokens[i]->imprimirToken();
     }
 }
 
@@ -101,10 +126,10 @@ Nodo& Nodo::operator = (const Nodo &original)
 
 class Produccion
 {
+ public:
     // Ej. aAb -> aBb + aAcb
     Nodo *first;            // parte izquierda
     vector<Nodo*> second;   // parte derecha
-public:
     Produccion(Nodo* f, vector<Nodo*> s)
     {
         first = f;
@@ -135,13 +160,13 @@ Produccion& Produccion::operator = (Produccion &original){
 
 class EarleyState
 {
+public:
     Produccion produccion_actual;   // ej. Verb -> Sust + Adj
     int pos_punto;
     int pos_chart;
     int estado_chart;
     int referencia_int;             // profe dijo hacerlo puntero y entero
     EarleyState* referencia_ptr;
-public:
     EarleyState(Produccion, int, int, int, int);
     friend class EarleyParser;
     friend bool busquedaChar(string, vector <EarleyState*>);
@@ -157,8 +182,6 @@ EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
     referencia_int = r; // de donde viene la produccion actual
 }
 
-/*
-
 //IMPRIME VECTOR
 void imprimirVector(vector <EarleyState*> vectorsote)
 {
@@ -168,14 +191,13 @@ void imprimirVector(vector <EarleyState*> vectorsote)
     }
 }
 
-
 class EarleyParser
 {
     vector<Produccion> P;   // vector de producciones
-    vector<*Nodo> SNT;     // simbolos no terminales
-    vector<*Nodo> ST;      // simbolos terminales
-    Nodo inicial;         // estado inicial
-    vector<*Nodo> expresion;
+    vector<string> SNT;     // simbolos no terminales
+    vector<string> ST;      // simbolos terminales
+    string inicial;         // estado inicial
+    vector<string> expresion;
     int pos_ch;
     int estado_ch;
 
@@ -189,7 +211,7 @@ public:
     void completar();
     void escanear();
     bool evaluacion_final();
-
+    Nodo* estructurarNodo(string);
 };
 
 EarleyParser::EarleyParser(vector <string> entrada)
@@ -200,14 +222,16 @@ EarleyParser::EarleyParser(vector <string> entrada)
     estado_ch = 0;  // inicio estado_chart
     for(int i = 0; i < P.size(); i++)
     {
-        if (P[i].first == inicial)
+        if (P[i].first->etiqueta == inicial)
         {
             EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
             chart.push_back(oEarley);
             pos_ch++;
         }
     }
-
+    predecir();
+    imprimirChart();
+/*
     while(true)
     {
         predecir();
@@ -241,9 +265,9 @@ EarleyParser::EarleyParser(vector <string> entrada)
         }
         escanear();
     }
-
+*/
 }
-
+/*
 bool EarleyParser::evaluacion_final()
 {
     for(int i=0; i<chart.size(); i++)
@@ -262,14 +286,76 @@ bool EarleyParser::evaluacion_final()
     return false;
 }
 
+*/
+Nodo* EarleyParser::estructurarNodo(string strNodo){
+    string etNodo;
+    string strTokens;
+    Nodo* nodito = new Nodo();
+
+    int flag = 0;
+    for(int i=0; i<strNodo.size(); i++){
+        if(flag==0){
+            etNodo.push_back(strNodo[i]);
+            if(strNodo[i+1]=='['){
+                i++;
+                flag = 1;
+                nodito->etiqueta=etNodo;
+            }
+        }
+        else if(flag==1){
+            strTokens.push_back(strNodo[i]);
+            if(strNodo[i+1]==']'){
+                break;
+            }
+        }
+    }
+
+    //en el caso de que sea un nodo terminal
+    if(flag == 0){
+        nodito->etiqueta=etNodo;
+        return nodito;
+    }
+
+    string etToken;
+    string valToken;
+    vector<string> vecTokens;
+    vecTokens = split(strTokens,' ');
+    for(int i=0; i<vecTokens.size(); i++){
+        flag = 0;
+        for(int j=0; j<vecTokens[i].size(); j++){
+            if(flag == 0){
+                etToken.push_back(vecTokens[i][j]);
+                if(vecTokens[i][j+1]=='='){
+                    j++;
+                    flag = 1;
+                }
+            }
+            else if(flag == 1){
+                valToken.push_back(vecTokens[i][j]);
+                if(vecTokens[i][j+1]==']'){
+                    break;
+                }
+            }
+        }
+        //cout<<valToken<<endl;
+        nodito->insertarToken(etToken,valToken);
+        etToken.clear();
+        valToken.clear();
+    }
+
+    return nodito;
+}
+
 void EarleyParser::recibirEntrada(vector<string> entrada)
 {
-    expresion = entrada[0];
+    // entrada guardar en expresion
+    expresion = split(entrada[0],' ');
     inicial = entrada[1];
+
     string palabra;
     for(int i=0; i<entrada[2].size(); i++)
     {
-        if(entrada[2][i]!=',')
+        if(entrada[2][i]!=' ')
         {
             palabra.push_back(entrada[2][i]);
         }
@@ -284,7 +370,7 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
 
     for(int i=0; i<entrada[3].size(); i++)
     {
-        if(entrada[3][i]!=',')
+        if(entrada[3][i]!=' ')
         {
             palabra.push_back(entrada[3][i]);
         }
@@ -299,29 +385,39 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
 
     int cant = atoi(entrada[4].c_str());
     int fin = 5 + cant;
+    vector<string> strSecond;
     for(int i = 5; i < fin; i++)
     {
         Produccion* tmp = new Produccion;
         for(int j=0; j<entrada[i].size(); j++)
         {
-            if(entrada[i][j]!= '=')
+            if(entrada[i][j]!= ':')
             {
                 palabra.push_back(entrada[i][j]);
             }
             else
             {
-                tmp->first = palabra;
+                tmp->first = estructurarNodo(palabra);
+                //cout<<tmp->first->etiqueta<<endl;
                 palabra.clear();
             }
         }
-        tmp->second = palabra;
+        strSecond = split(palabra,' ');
+        Nodo* ptrSecond;
+        for(int j=0; j<strSecond.size(); j++){
+            ptrSecond = estructurarNodo(strSecond[j]);
+            tmp->second.push_back(ptrSecond);
+
+        }
         P.push_back(*tmp);
         palabra.clear();
-
+        strSecond.clear();
     }
 
     cout<<"DATOS RECIBIDOS"<<endl;
-    cout<<"Expresion      : "<<expresion<<endl;
+    cout<<"Expresion      : ";
+    imprimirVector(expresion);
+    cout<<endl;
     cout<<"Estado inicial : "<<inicial<<endl;
     cout<<"No Terminales  : ";
     imprimirVector(SNT);
@@ -332,7 +428,7 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
     cout<<"PRODUCCIONES"<<endl;
     for(int i=0; i<P.size(); i++)
     {
-        P[i].imprimir();
+        P[i].imprimirProduccion();
         cout << endl;
     }
     cout << endl;
@@ -345,12 +441,12 @@ void EarleyParser::imprimirChart()
     for(int i = 0; i < chart.size(); i++)
     {
         cout << chart[i]->pos_chart << ", ";
-        chart[i]->produccion_actual.imprimir();
+        chart[i]->produccion_actual.imprimirProduccion();
         cout << ", " << chart[i]->pos_punto << ", " << chart[i]->estado_chart << ", " << chart[i]->referencia_int << endl;
     }
 }
 
-bool busquedaChar(string letra, vector <string> vec)
+bool busquedaString(string letra, vector <string> vec)
 {
     for(int i=0; i<vec.size(); i++)
     {
@@ -362,11 +458,11 @@ bool busquedaChar(string letra, vector <string> vec)
     return false;
 }
 
-bool busquedaChar(string letra, vector <EarleyState*> vec)
+bool busquedaString(string letra, vector <EarleyState*> vec)
 {
     for(int i=0; i<vec.size(); i++)
     {
-        if(vec[i]->produccion_actual.first == letra)
+        if(vec[i]->produccion_actual.first->etiqueta == letra)
         {
             return true;
         }
@@ -386,7 +482,7 @@ void EarleyParser::predecir()
     vector <string> vec;
     int pos = chart[chart.size()-1]->pos_punto;
     string tmp;
-    tmp.push_back(chart[chart.size()-1]->produccion_actual.second[pos]);
+    tmp = chart[chart.size()-1]->produccion_actual.second[pos]->etiqueta;
 
     vec.push_back(tmp);
     int pos_vec=0;
@@ -395,14 +491,14 @@ void EarleyParser::predecir()
     {
         for(int i=0; i<P.size(); i++)  // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
         {
-            if(P[i].first == vec[pos_vec])   // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
+            if(P[i].first->etiqueta == vec[pos_vec])   // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
             {
                 EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch); //1° estado_ch = estado actual; 2° = ref
                 chart.push_back(oEarley);
                 pos_ch++;
-                if(!busquedaChar(char_to_string(P[i].second[0]), vec))
+                if(!busquedaString(P[i].second[0]->etiqueta, vec))
                 {
-                    vec.push_back(char_to_string(P[i].second[0]));
+                    vec.push_back(P[i].second[0]->etiqueta);
                 }
             }
         }
@@ -413,7 +509,7 @@ void EarleyParser::predecir()
 
     estado_ch++;
 }
-
+/*
 void EarleyParser::escanear()
 {
     char letraTest = expresion[0];
@@ -478,11 +574,12 @@ void EarleyParser::completar()
 
 int main()
 {
-//    vector <string> entrada;
-//    entrada = lecturaParrafo("entrada.txt");
-//
-//    EarleyParser earley(entrada);
+    vector <string> entrada;
+    entrada = lecturaParrafo("entrada.txt");
 
+    EarleyParser earley(entrada);
+
+/*
     Nodo nodito("N");
     Token prueba("num","singular");
     Token prueba2("num","plural");
@@ -502,6 +599,6 @@ int main()
     Produccion producto(&nodito,nodos);
 
     producto.imprimirProduccion();
-
+*/
     return 0;
 }

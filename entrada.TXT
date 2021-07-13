@@ -1,14 +1,14 @@
-2+3*4
+2 + 3 * 4
 P
-P,S,M,T
-1,2,3,4,+,*
+P S M T
+1 2 3 4 + *
 9
-P=S
-S=S+M
-S=M
-M=M*T
-M=T
-T=1
-T=2
-T=3
-T=4
+P[NUM=?]:S[NUM=?]
+S[NUM=?]:S[NUM=?]+M[NUM=?]
+S[NUM=?]:M[NUM=?]
+M[NUM=?]:M[NUM=?]*T[NUM=?]
+M[NUM=?]:T[NUM=?]
+T[NUM=?]:1
+T[NUM=?]:2
+T[NUM=?]:3
+T[NUM=?]:4
