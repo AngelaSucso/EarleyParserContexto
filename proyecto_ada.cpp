@@ -188,7 +188,7 @@ void imprimirVector(vector <EarleyState*> vectorsote)
 {
     for(int i=0; i<vectorsote.size(); i++)
     {
-        cout<<vectorsote[i]->produccion_actual.first<<" ";
+        cout<<vectorsote[i]->produccion_actual.first->etiqueta<<" ";
     }
 }
 
@@ -236,19 +236,12 @@ EarleyParser::EarleyParser(vector <string> entrada)
             pos_ch++;
         }
     }
-    predecir();
-    imprimirChart();
-    escanear();
-    imprimirChart();
-    completar();
-    imprimirChart();
-/*
+
     while(true)
     {
         predecir();
         if(expresion.size() == 0)
         {
-            imprimirChart();
             if(evaluacion_final())
             {
                 cout<<"\nSi pertenece a la gramatica."<<endl;
@@ -276,9 +269,9 @@ EarleyParser::EarleyParser(vector <string> entrada)
         }
         escanear();
     }
-*/
+
 }
-/*
+
 bool EarleyParser::evaluacion_final()
 {
     for(int i=0; i<chart.size(); i++)
@@ -297,7 +290,7 @@ bool EarleyParser::evaluacion_final()
     return false;
 }
 
-*/
+
 Nodo* EarleyParser::estructurarNodo(string strNodo){
     string etNodo;
     string strTokens;
@@ -530,12 +523,16 @@ void EarleyParser::escanear()
         if(chart[i]->estado_chart == estado_ch-1)
         {
             int pos = chart[i]->pos_punto;
-            string tmp = chart[i]->produccion_actual.second[pos]->etiqueta;
-            if(palabraTest == tmp)
+            if(pos!=chart[i]->produccion_actual.second.size())
             {
-                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos + 1, pos_ch, estado_ch, chart[i]->referencia_int);
-                chart.push_back(oEarley);
-                pos_ch++;
+                string tmp = chart[i]->produccion_actual.second[pos]->etiqueta;
+                if(palabraTest == tmp)
+                {
+                    EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual,
+                        pos + 1, pos_ch, estado_ch, chart[i]->referencia_int);
+                    chart.push_back(oEarley);
+                    pos_ch++;
+                }
             }
         }
     }
@@ -555,23 +552,26 @@ void EarleyParser::completar()
     {
         first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
         var_ref        = vec[pos_vec]->referencia_int;
+
         for(int i = 0; i < chart.size(); i++) //itera por el chart
         {
             int pos_tmp = chart[i]->pos_punto;
 
-            // letra de la produccion en la posicion pos_punto
-            string palabra_actual = chart[i]->produccion_actual.second[pos_tmp]->etiqueta;
-
-            if(chart[i]->estado_chart == var_ref && palabra_actual == first_busqueda)
+            if(pos_tmp!= chart[i]->produccion_actual.second.size())
             {
-                EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual, pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int);
-                chart.push_back(oEarley);
-                oEarley->imprimirEarleyState();
-                pos_ch++;
+                string palabra_actual = chart[i]->produccion_actual.second[pos_tmp]->etiqueta;
 
-                if( !busquedaString(chart[i]->produccion_actual.first->etiqueta, vec) )
+                if(chart[i]->estado_chart == var_ref && palabra_actual == first_busqueda)
                 {
-                    vec.push_back(chart[i]);
+                    EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual,
+                        pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int);
+                    chart.push_back(oEarley);
+                    pos_ch++;
+
+                    if( !busquedaString(chart[i]->produccion_actual.first->etiqueta, vec) )
+                    {
+                        vec.push_back(chart[i]);
+                    }
                 }
             }
         }
@@ -579,6 +579,7 @@ void EarleyParser::completar()
 
         if(pos_vec == vec.size())
             break;
+
     }
     estado_ch++;
 }
@@ -591,26 +592,5 @@ int main()
 
     EarleyParser earley(entrada);
 
-/*
-    Nodo nodito("N");
-    Token prueba("num","singular");
-    Token prueba2("num","plural");
-    Token prueba3("gen","femenino");
-    nodito.insertarToken("gen","masculino");
-    nodito.insertarToken("num","plural");
-
-    cout<<prueba.etiqueta<<endl;
-    cout<<prueba2.valor<<endl;
-    cout<<prueba3.etiqueta<<endl<<endl;
-
-    cout<<nodito.etiqueta<<" "<<nodito.tokens[0]->valor<<endl;
-
-    vector<Nodo*> nodos;
-    nodos.push_back(&nodito);
-
-    Produccion producto(&nodito,nodos);
-
-    producto.imprimirProduccion();
-*/
     return 0;
 }
