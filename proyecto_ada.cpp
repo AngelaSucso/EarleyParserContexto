@@ -235,10 +235,151 @@ public:
     void imprimirChart();
     void predecir();
     void completar();
-    void escanear();
+    bool escanear();
     bool evaluacion_final();
     Nodo* estructurarNodo(string);
+    bool actualizarContexto(string, string, string);
+    bool comprobarContexto(Produccion*);
 };
+
+bool EarleyParser::comprobarContexto(Produccion* prod){
+    string var = "?n";
+
+    // inicializar var
+    for(int i=0; i<prod->second.size(); i++){ // itera por el second de la prod
+        for(int j=0; j<prod->second[i]->contextos.size(); j++){
+            if(prod->second[i]->contextos[j]->valor != "?n"){
+                var = prod->second[i]->contextos[j]->valor;
+            }
+        }
+    }
+
+    bool flag = true;
+    if(var!= "?n"){
+        for(int i=0; i<prod->second.size(); i++){
+            for(int j=0; j<prod->second[i]->contextos.size(); j++){
+                if(prod->second[i]->contextos[j]->valor != var){
+                    flag = false;
+                    if(prod->second[i]->contextos[j]->valor != "?n"){
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    if(flag == true && prod->first->contextos[0]->valor == "?n"){ // ..
+        prod->first->contextos[0]->valor = var;
+    }
+
+    return true;
+}
+
+bool EarleyParser::actualizarContexto(string etNodo, string etContext, string valContext)
+{
+    //FIRST
+    for(int i=0; i<chart.size(); i++){ // itera por cada earley state del chart
+//        cout<<"AQUI FIRST"<<endl;
+        Nodo* ptrFirst = chart[i]->produccion_actual.first;
+        if(ptrFirst->etiqueta == etNodo){
+            for(int j=0; j<ptrFirst->contextos.size(); j++){ // recorre el vec de contextos de first
+                if(ptrFirst->contextos[j]->etiqueta == etContext && ptrFirst->contextos[j]->valor == "?n"){
+                    ptrFirst->contextos[j]->valor = valContext; // actualiza
+                }
+            }
+        }
+    }
+
+    //SECOND
+    for(int i=0; i<chart.size(); i++) // itera por cada earley state del chart
+    {
+        vector<Nodo*> ptrSecond = chart[i]->produccion_actual.second;
+        for(int k=0; k<ptrSecond.size(); k++)  // itera por cada nodo del second
+        {
+            if(ptrSecond[k]->etiqueta == etNodo)
+            {
+                for(int j=0; j<ptrSecond[k]->contextos.size(); j++)  // recorre el vec de contextos de second
+                {
+                    if(ptrSecond[k]->contextos[j]->etiqueta == etContext && ptrSecond[k]->contextos[j]->valor == "?n")
+                    {
+                        ptrSecond[k]->contextos[j]->valor = valContext; // actualiza
+                    }
+                }
+            }
+        }
+    }
+
+//    // ACTUALIZAR GRAMATICA
+//    for(int i=0; i<P.size(); i++){
+//        Nodo* ptrFirst = P[i].first;
+//        if(ptrFirst->etiqueta == etNodo){
+//            for(int j=0; j<ptrFirst->contextos.size(); j++){ // recorre el vec de contextos de first
+//                if(ptrFirst->contextos[j]->etiqueta == etContext && ptrFirst->contextos[j]->valor == "?n"){
+//                    ptrFirst->contextos[j]->valor = valContext; // actualiza
+//                }
+//            }
+//        }
+//    }
+//
+//    //second
+//    for(int i=0; i<P.size(); i++) // itera por cada earley state del chart
+//    {
+//        vector<Nodo*> ptrSecond = P[i].second;
+//        for(int k=0; k<ptrSecond.size(); k++)  // itera por cada nodo del second
+//        {
+//            if(ptrSecond[k]->etiqueta == etNodo)
+//            {
+//                for(int j=0; j<ptrSecond[k]->contextos.size(); j++)  // recorre el vec de contextos de second
+//                {
+//                    if(ptrSecond[k]->contextos[j]->etiqueta == etContext && ptrSecond[k]->contextos[j]->valor == "?n")
+//                    {
+//                        ptrSecond[k]->contextos[j]->valor = valContext; // actualiza
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    for(int i=0; i<chart.size(); i++){
+        if(comprobarContexto(&chart[i]->produccion_actual) == false){
+            return false;
+        }
+    }
+
+//    //FIRST
+//    for(int i=0; i<chart.size(); i++){ // itera por cada earley state del chart
+////        cout<<"AQUI FIRST"<<endl;
+//        Nodo* ptrFirst = chart[i]->produccion_actual.first;
+//        if(ptrFirst->etiqueta == etNodo){
+//            for(int j=0; j<ptrFirst->contextos.size(); j++){ // recorre el vec de contextos de first
+//                if(ptrFirst->contextos[j]->etiqueta == etContext && ptrFirst->contextos[j]->valor == "?n"){
+//                    ptrFirst->contextos[j]->valor = valContext; // actualiza
+//                }
+//            }
+//        }
+//    }
+//
+//    //SECOND
+//    for(int i=0; i<chart.size(); i++) // itera por cada earley state del chart
+//    {
+//        vector<Nodo*> ptrSecond = chart[i]->produccion_actual.second;
+//        for(int k=0; k<ptrSecond.size(); k++)  // itera por cada nodo del second
+//        {
+//            if(ptrSecond[k]->etiqueta == etNodo)
+//            {
+//                for(int j=0; j<ptrSecond[k]->contextos.size(); j++)  // recorre el vec de contextos de second
+//                {
+//                    if(ptrSecond[k]->contextos[j]->etiqueta == etContext && ptrSecond[k]->contextos[j]->valor == "?n")
+//                    {
+//                        ptrSecond[k]->contextos[j]->valor = valContext; // actualiza
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    return true;
+}
 
 EarleyParser::EarleyParser(vector <string> entrada)
 {
@@ -284,7 +425,13 @@ EarleyParser::EarleyParser(vector <string> entrada)
                 }
                 else
                 {
-                    escanear(); // terminal
+                    cout << endl;
+                    imprimirChart();
+                    if(escanear() == false) // terminal
+                    {
+                        cout<<"\nCONTEXTO ES ERRONEO"<<endl;
+                        return;
+                    }
                 }
             }
         }
@@ -297,7 +444,7 @@ EarleyParser::EarleyParser(vector <string> entrada)
             break;
 
     }
-
+    cout << endl;
     imprimirChart();
 
     if(evaluacion_final())
@@ -553,12 +700,12 @@ void EarleyParser::predecir()
 //    estado_ch++;
 }
 
-void EarleyParser::escanear()
+bool EarleyParser::escanear()
 {
     estado_ch++;
     string palabraTest = expresion[0];
 
-    for(int i=0; i<chart.size(); i++)
+    for(int i=0; i<chart.size(); i++) // itera en el chart
     {
         if(chart[i]->estado_chart == estado_ch-1)
         {
@@ -568,16 +715,29 @@ void EarleyParser::escanear()
                 string tmp = chart[i]->produccion_actual.second[pos]->etiqueta;
                 if(palabraTest == tmp)
                 {
+                    // itera en los contextos del first
+                    for(int j=0; j<chart[i]->produccion_actual.first->contextos.size(); j++)
+                    {
+                        string etN = chart[i]->produccion_actual.first->etiqueta;
+                        string etC = chart[i]->produccion_actual.first->contextos[j]->etiqueta;
+                        string valC = chart[i]->produccion_actual.first->contextos[j]->valor;
+                        if(actualizarContexto(etN, etC, valC) == false){
+                            return false;
+                        }
+                    }
+
                     EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual,
                         pos + 1, pos_ch, estado_ch, chart[i]->referencia_int, "---");
+
                     chart.push_back(oEarley);
                     pos_ch++;
                 }
             }
         }
     }
-    expresion.erase(expresion.begin());
 
+    expresion.erase(expresion.begin());
+    return true;
 }
 
 void EarleyParser::completar()
@@ -632,7 +792,7 @@ void EarleyParser::completar()
 int main()
 {
     vector <string> entrada;
-    entrada = lecturaParrafo("entrada.txt");
+    entrada = lecturaParrafo("entradacontexto.txt");
 
     EarleyParser earley(entrada);
 
