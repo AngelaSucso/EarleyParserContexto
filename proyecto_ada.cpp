@@ -47,28 +47,28 @@ void imprimirVector(vector <string> vectorsote)
     }
 }
 
-// TOKEN ================================================
+// CONTEXTO ================================================
 
-class Token{
+class Contexto{
 public:
     string etiqueta;
     string valor;
-    Token();
-    Token(string,string);
-    void imprimirToken();
+    Contexto();
+    Contexto(string,string);
+    void imprimirContexto();
 };
 
-Token::Token(){
+Contexto::Contexto(){
     etiqueta = "";
     valor = "";
 }
 
-Token::Token(string _etiqueta, string _valor){
+Contexto::Contexto(string _etiqueta, string _valor){
     etiqueta = _etiqueta;
     valor = _valor;
 }
 
-void Token::imprimirToken(){
+void Contexto::imprimirContexto(){
     cout<<etiqueta<<"="<<valor;
 }
 
@@ -77,12 +77,13 @@ void Token::imprimirToken(){
 class Nodo{
 public:
     string etiqueta;
-    vector<Token*> tokens;
+    vector<Contexto*> contextos;
     Nodo();
     Nodo(string);
-    void insertarToken(string,string);
-    void imprimirTokens();
+    void insertarContexto(string,string);
+    void imprimirContextos();
     void imprimirNodo();
+    bool esTerminal();
 
     Nodo& operator = (const Nodo &original);
 };
@@ -95,31 +96,40 @@ Nodo::Nodo(string _etiqueta){
     etiqueta = _etiqueta;
 }
 
-void Nodo::insertarToken(string etiqueta, string valor)
+void Nodo::insertarContexto(string etiqueta, string valor)
 {
-    Token *token = new Token(etiqueta,valor);
-    tokens.push_back(token);
+    Contexto *contexto = new Contexto(etiqueta,valor);
+    contextos.push_back(contexto);
 }
 
-void Nodo::imprimirTokens(){
-    for(int i=0; i<tokens.size(); i++){
-        tokens[i]->imprimirToken();
+void Nodo::imprimirContextos(){
+    for(int i=0; i<contextos.size(); i++){
+        contextos[i]->imprimirContexto();
     }
 }
 
 void Nodo::imprimirNodo(){
     cout<<etiqueta;
     cout<<"[";
-    imprimirTokens();
+    imprimirContextos();
     cout<<"]";
 }
 
 Nodo& Nodo::operator = (const Nodo &original)
 {
     etiqueta = original.etiqueta;
-    for (int i=0; i<original.tokens.size(); i++)
-        tokens.push_back(original.tokens[i]);
+    for (int i=0; i<original.contextos.size(); i++)
+        contextos.push_back(original.contextos[i]);
     return *this;
+}
+
+bool Nodo::esTerminal()
+{
+    if(contextos.size() == 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 //==========================================================
@@ -166,21 +176,23 @@ public:
     int pos_chart;
     int estado_chart;
     int referencia_int;             // profe dijo hacerlo puntero y entero
+    string contexto;
     EarleyState* referencia_ptr;
-    EarleyState(Produccion, int, int, int, int);
+    EarleyState(Produccion, int, int, int, int, string);
     void imprimirEarleyState();
     friend class EarleyParser;
     friend bool busquedaChar(string, vector <EarleyState*>);
     friend void imprimirVector(vector <EarleyState*>);
 };
 
-EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r)
+EarleyState::EarleyState(Produccion prod, int pp, int pc, int ec, int r, string context)
 {
     produccion_actual = prod;
     pos_punto = pp;     // pos del punto en la expresion
     pos_chart = pc;     // linea del chart actual
     estado_chart = ec;  // 0(inicio,predecir), 1(escanear,completar), 2(escanear,predecir), 3(... )
     referencia_int = r; // de donde viene la produccion actual
+    contexto = context;
 }
 
 //IMPRIME VECTOR
@@ -192,10 +204,17 @@ void imprimirVector(vector <EarleyState*> vectorsote)
     }
 }
 
+void imprimirVector(vector <Nodo*> vectorsote)
+{
+    for(int i=0; i<vectorsote.size(); i++)
+    {
+        vectorsote[i]->imprimirNodo();
+    }
+}
 void EarleyState::imprimirEarleyState(){
     cout << pos_chart << ", ";
     produccion_actual.imprimirProduccion();
-    cout << ", " << pos_punto << ", " << estado_chart << ", " << referencia_int << endl;
+    cout << ", " << pos_punto << ", " << estado_chart << ", " << referencia_int << ", " << contexto << endl;
 }
 
 class EarleyParser
@@ -231,56 +250,75 @@ EarleyParser::EarleyParser(vector <string> entrada)
     {
         if (P[i].first->etiqueta == inicial)
         {
-            EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0);
+            EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, 0, "---"); // ?n ????
             chart.push_back(oEarley);
             pos_ch++;
         }
     }
 
-    while(true)
+    int pos_punto_actual;
+    vector<Nodo*> second_actual;
+    int pos_final_produccion;
+
+
+    while (true)
     {
-        predecir();
-        if(expresion.size() == 0)
+        int tam_ini = chart.size();
+
+        EarleyState* estado_final = chart[chart.size()-1];       //ultimo estado del chart
+        pos_punto_actual    = estado_final->pos_punto;
+        second_actual       = estado_final->produccion_actual.second;
+        pos_final_produccion= second_actual.size()-1;
+
+        if (pos_punto_actual != pos_final_produccion+1)  // cuando el punto esta al final de la produccion
         {
-            if(evaluacion_final())
+            if (!second_actual[pos_punto_actual]->esTerminal())
             {
-                cout<<"\nSi pertenece a la gramatica."<<endl;
+                predecir();  // no terminal
             }
             else
             {
-                cout<<"\nNo pertenece a la gramatica."<<endl;
+                if(chart.empty())
+                {
+                    break;
+                }
+                else
+                {
+                    escanear(); // terminal
+                }
             }
-            break;
         }
-        escanear();
-        completar();
-        if(expresion.size() == 0)
+        else
         {
-            imprimirChart();
-            if(evaluacion_final())
-            {
-                cout<<"\nSi pertenece a la gramatica."<<endl;
-            }
-            else
-            {
-                cout<<"\nNo pertenece a la gramatica."<<endl;
-            }
-            break;
+            completar();
         }
-        escanear();
+        int tam_fin = chart.size();
+        if(tam_ini == tam_fin)
+            break;
+
     }
 
+    imprimirChart();
+
+    if(evaluacion_final())
+    {
+        cout<<"\nSi pertenece a la gramatica."<<endl;
+    }
+    else
+    {
+        cout<<"\nNo pertenece a la gramatica."<<endl;
+    }
 }
 
 bool EarleyParser::evaluacion_final()
 {
     for(int i=0; i<chart.size(); i++)
     {
-        if(chart[i]->estado_chart == estado_ch-1)  //buscar en el ultimo estado
+        if(chart[i]->estado_chart == estado_ch)  //buscar en el ultimo estado
         {
             if(chart[i]->pos_punto == chart[i]->produccion_actual.second.size())  //verifica que pos-punto este al final de su produccion
             {
-                if(chart[i]->referencia_int == 0)  //verifica que su staterefence sea 0
+                if(chart[i]->referencia_int == 0)  //verifica que su state_refence sea 0
                 {
                     return true;
                 }
@@ -293,7 +331,7 @@ bool EarleyParser::evaluacion_final()
 
 Nodo* EarleyParser::estructurarNodo(string strNodo){
     string etNodo;
-    string strTokens;
+    string strContextos;
     Nodo* nodito = new Nodo();
 
     int flag = 0;
@@ -307,7 +345,7 @@ Nodo* EarleyParser::estructurarNodo(string strNodo){
             }
         }
         else if(flag==1){
-            strTokens.push_back(strNodo[i]);
+            strContextos.push_back(strNodo[i]);
             if(strNodo[i+1]==']'){
                 break;
             }
@@ -320,31 +358,31 @@ Nodo* EarleyParser::estructurarNodo(string strNodo){
         return nodito;
     }
 
-    string etToken;
-    string valToken;
-    vector<string> vecTokens;
-    vecTokens = split(strTokens,' ');
-    for(int i=0; i<vecTokens.size(); i++){
+    string etContexto;
+    string valContexto;
+    vector<string> vecContextos;
+    vecContextos = split(strContextos,' ');
+    for(int i=0; i<vecContextos.size(); i++){
         flag = 0;
-        for(int j=0; j<vecTokens[i].size(); j++){
+        for(int j=0; j<vecContextos[i].size(); j++){
             if(flag == 0){
-                etToken.push_back(vecTokens[i][j]);
-                if(vecTokens[i][j+1]=='='){
+                etContexto.push_back(vecContextos[i][j]);
+                if(vecContextos[i][j+1]=='='){
                     j++;
                     flag = 1;
                 }
             }
             else if(flag == 1){
-                valToken.push_back(vecTokens[i][j]);
-                if(vecTokens[i][j+1]==']'){
+                valContexto.push_back(vecContextos[i][j]);
+                if(vecContextos[i][j+1]==']'){
                     break;
                 }
             }
         }
-        //cout<<valToken<<endl;
-        nodito->insertarToken(etToken,valToken);
-        etToken.clear();
-        valToken.clear();
+        //cout<<valContexto<<endl;
+        nodito->insertarContexto(etContexto,valContexto);
+        etContexto.clear();
+        valContexto.clear();
     }
 
     return nodito;
@@ -441,12 +479,13 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
 void EarleyParser::imprimirChart()
 {
     cout << "============== CHART ==============" << endl;
-    cout << "pos_chart, produc_actual, pos_punto, estado, referencia\n\n";
+    cout << "pos_chart, produc_actual, pos_punto, estado, referencia, contexto\n\n";
     for(int i = 0; i < chart.size(); i++)
     {
         cout << chart[i]->pos_chart << ", ";
         chart[i]->produccion_actual.imprimirProduccion();
-        cout << ", " << chart[i]->pos_punto << ", " << chart[i]->estado_chart << ", " << chart[i]->referencia_int << endl;
+        cout << ", " << chart[i]->pos_punto << ", " << chart[i]->estado_chart << ", " << chart[i]->referencia_int
+        << chart[i]->contexto << endl;
     }
 }
 
@@ -497,7 +536,7 @@ void EarleyParser::predecir()
         {
             if(P[i].first->etiqueta == vec[pos_vec])   // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
             {
-                EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch); //1° estado_ch = estado actual; 2° = ref
+                EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch, "---"); //1Â° estado_ch = estado actual; 2Â° = ref
                 chart.push_back(oEarley);
                 pos_ch++;
                 if(!busquedaString(P[i].second[0]->etiqueta, vec))
@@ -511,11 +550,12 @@ void EarleyParser::predecir()
             break;
     }
 
-    estado_ch++;
+//    estado_ch++;
 }
 
 void EarleyParser::escanear()
 {
+    estado_ch++;
     string palabraTest = expresion[0];
 
     for(int i=0; i<chart.size(); i++)
@@ -529,7 +569,7 @@ void EarleyParser::escanear()
                 if(palabraTest == tmp)
                 {
                     EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual,
-                        pos + 1, pos_ch, estado_ch, chart[i]->referencia_int);
+                        pos + 1, pos_ch, estado_ch, chart[i]->referencia_int, "---");
                     chart.push_back(oEarley);
                     pos_ch++;
                 }
@@ -537,24 +577,30 @@ void EarleyParser::escanear()
         }
     }
     expresion.erase(expresion.begin());
+
 }
 
 void EarleyParser::completar()
 {
+
+    // hay que ver si hace un paso de mas corregir
     vector <EarleyState*> vec;
     vec.push_back(chart[chart.size()-1]);
 
     int pos_vec = 0;
     int var_ref;
     string first_busqueda; // extrae palabra del vec
-
-    while(true)  // itera por el vector
-    {
-        first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
-        var_ref        = vec[pos_vec]->referencia_int;
+//
+//    while(true)  // itera por el vector
+//    {
+//        first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
+//        var_ref        = vec[pos_vec]->referencia_int;
 
         for(int i = 0; i < chart.size(); i++) //itera por el chart
         {
+            first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
+            var_ref        = vec[pos_vec]->referencia_int;
+
             int pos_tmp = chart[i]->pos_punto;
 
             if(pos_tmp!= chart[i]->produccion_actual.second.size())
@@ -564,7 +610,7 @@ void EarleyParser::completar()
                 if(chart[i]->estado_chart == var_ref && palabra_actual == first_busqueda)
                 {
                     EarleyState* oEarley = new EarleyState(chart[i]->produccion_actual,
-                        pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int);
+                        pos_tmp + 1, pos_ch, estado_ch, chart[i]->referencia_int, "---");
                     chart.push_back(oEarley);
                     pos_ch++;
 
@@ -577,11 +623,9 @@ void EarleyParser::completar()
         }
         pos_vec++;
 
-        if(pos_vec == vec.size())
-            break;
-
-    }
-    estado_ch++;
+//        if(pos_vec == vec.size())
+//            break;
+//    }
 }
 
 
