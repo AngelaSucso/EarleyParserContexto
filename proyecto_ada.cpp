@@ -794,6 +794,10 @@ int main()
     vector <string> entrada;
     entrada = lecturaParrafo("entradacontexto.txt");
 
+
+
+
+
     EarleyParser earley(entrada);
 
     return 0;
