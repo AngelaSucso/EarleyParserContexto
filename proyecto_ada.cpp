@@ -277,12 +277,13 @@ public:
 
 };
 
+// CONSTRUCTOR
 EarleyParser::EarleyParser(vector <string> entrada)
 {
     recibirEntrada(entrada);
 
-    pos_ch = 0;         // inicio pos_chart
-    estado_ch = 0;      // inicio estado_chart
+    pos_ch = 0;                         // inicio pos_chart
+    estado_ch = 0;                      // inicio estado_chart
     for(int i = 0; i < P.size(); i++)
     {
         if (P[i].first->etiqueta == inicial)
@@ -296,7 +297,6 @@ EarleyParser::EarleyParser(vector <string> entrada)
     int pos_punto_actual;
     vector<Nodo*> second_actual;
     int pos_final_produccion;
-
 
     while (true)
     {
@@ -353,12 +353,14 @@ EarleyParser::EarleyParser(vector <string> entrada)
     }
 }
 
+//RECIBE ENTRADA
 void EarleyParser::recibirEntrada(vector<string> entrada)
 {
     // entrada guardar en expresion
     expresion = split(entrada[0],' ');
     inicial = entrada[1];
 
+    //No terminales
     string palabra;
     for(int i=0; i<entrada[2].size(); i++)
     {
@@ -375,6 +377,7 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
     SNT.push_back(palabra);
     palabra.clear();
 
+    //Terminales
     for(int i=0; i<entrada[3].size(); i++)
     {
         if(entrada[3][i]!=' ')
@@ -390,6 +393,7 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
     ST.push_back(palabra);
     palabra.clear();
 
+    //Forman los nodos
     int cant = atoi(entrada[4].c_str());
     int fin = 5 + cant;
     vector<string> strSecond;
@@ -421,6 +425,7 @@ void EarleyParser::recibirEntrada(vector<string> entrada)
         strSecond.clear();
     }
 
+    //Visualizacion en Consola
     cout<<"DATOS RECIBIDOS"<<endl;
     cout<<"Expresion      : ";
     imprimirVector(expresion);
@@ -495,6 +500,7 @@ string char_to_string(char A)
     return tmp;
 }
 
+//SEPARA LOS CONTEXTOS Y ETIQUETAS
 Nodo* EarleyParser::estructurarNodo(string strNodo)
 {
     string etNodo;
@@ -571,14 +577,12 @@ void EarleyParser::actualizarContextosRec()
     for(int i=0; i<chart.size(); i++)
     {
         bool b = comprobarContexto(&chart[i]->produccion_actual);
-        if(b==true)
+        if(b)
         {
-
             string etN = chart[i]->produccion_actual.first->etiqueta;
             string etC = chart[i]->produccion_actual.first->contextos[0]->etiqueta;
             string valC = chart[i]->produccion_actual.first->contextos[0]->valor;
             actualizarUnContexto(etN,etC,valC);
-            cout<<"HOLa"<<endl;
             actualizarContextosRec();
         }
     }
@@ -675,7 +679,6 @@ void EarleyParser::actualizarUnContexto(string etNodo, string etContext, string 
 
 }
 
-
 bool EarleyParser::evaluacion_final()
 {
     for(int i=0; i<chart.size(); i++)
@@ -704,11 +707,11 @@ void EarleyParser::predecir()
     vec.push_back(tmp);
     int pos_vec=0;
 
-    while(true)  // ITERA POR EL VEC
+    while(true)                                         // ITERA POR EL VEC
     {
-        for(int i=0; i<P.size(); i++)  // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
+        for(int i=0; i<P.size(); i++)                   // ITERA POR LAS PRODUCCIONES DE LA GRAMATICA
         {
-            if(P[i].first->etiqueta == vec[pos_vec])   // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
+            if(P[i].first->etiqueta == vec[pos_vec])    // COMPARA LA LETRA EN LA POS_PUNTO CON LA GRAMATICA
             {
                 EarleyState* oEarley = new EarleyState(P[i], 0, pos_ch, estado_ch, estado_ch, "---"); //1° estado_ch = estado actual; 2° = ref
                 chart.push_back(oEarley);
@@ -731,7 +734,7 @@ void EarleyParser::escanear()
     estado_ch++;
     string palabraTest = expresion[0];
 
-    for(int i=0; i<chart.size(); i++) // itera en el chart
+    for(int i=0; i<chart.size(); i++)               // itera en el chart
     {
         if(chart[i]->estado_chart == estado_ch-1)
         {
@@ -763,7 +766,6 @@ void EarleyParser::escanear()
     }
 
     expresion.erase(expresion.begin());
-
 }
 
 void EarleyParser::completar()
@@ -775,9 +777,9 @@ void EarleyParser::completar()
 
     int pos_vec = 0;
     int var_ref;
-    string first_busqueda; // extrae palabra del vec
+    string first_busqueda;                  // extrae palabra del vec
 
-    for(int i = 0; i < chart.size(); i++) //itera por el chart
+    for(int i = 0; i < chart.size(); i++)   //itera por el chart
     {
         first_busqueda = vec[pos_vec]->produccion_actual.first->etiqueta;
         var_ref        = vec[pos_vec]->referencia_int;
